@@ -16,7 +16,7 @@ func Test_NewTimer(t *testing.T) {
 	timeout := NewOnTimeOut(func() {
 		fmt.Println(`hahahah `)
 	})
-	timerID := wheel.AddTimer(`1 7/13 * * * *`, timeout)
+	timerID := wheel.AddTimer(`1 7/13 * * * *`, `unqiuename`, timeout)
 	fmt.Printf("Add timer %d\n", timerID)
 	c := time.After(9 * time.Minute)
 	wg.Add(1)

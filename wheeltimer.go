@@ -42,6 +42,15 @@ func (heap timerHeapType) getIndexByID(id int64) int {
 	return -1
 }
 
+func (heap timerHeapType) getIndexByName(name string) int {
+	for _, t := range heap {
+		if t.unqiueName == name {
+			return t.index
+		}
+	}
+	return -1
+}
+
 func (heap timerHeapType) Len() int {
 	return len(heap)
 }
@@ -89,6 +98,7 @@ func NewOnTimeOut(cb func()) *OnTimeOut {
 // the timer will time out periodically, 'timeout' contains the callback
 // to be called when times out
 type timerType struct {
+	unqiueName string
 	id         int64         // id 定时任务的唯一id，可以这个id查找在队列中的定时任务
 	expiration time.Time     // expiration 定时任务的到期时间点，当到这个时间点后，触发定时任务的执行，在优先队列中也是通过这个字段来排序
 	interval   time.Duration // interval 定时任务的触发频率，每隔interval时间段触发一次
@@ -105,7 +115,7 @@ type timerType struct {
 	Prev time.Time
 }
 
-func newTimer(when time.Time, interv time.Duration, to *OnTimeOut, schedule Schedule) *timerType {
+func newTimer(when time.Time, interv time.Duration, to *OnTimeOut, schedule Schedule, unqiueName string) *timerType {
 	return &timerType{
 		id:         timerIds.GetAndIncrement(),
 		expiration: when,
@@ -113,6 +123,7 @@ func newTimer(when time.Time, interv time.Duration, to *OnTimeOut, schedule Sche
 		timeout:    to,
 		Schedule:   schedule,
 		Next:       when,
+		unqiueName: unqiueName,
 	}
 }
 
@@ -160,7 +171,7 @@ func (tw *TimingWheel) TimeOutChannel() chan *OnTimeOut {
 }
 
 // AddTimer adds new timed task.
-func (tw *TimingWheel) AddTimer(spec string, to *OnTimeOut) int64 {
+func (tw *TimingWheel) AddTimer(spec, unqiueName string, to *OnTimeOut) int64 {
 	if to == nil {
 		return int64(-1)
 	}
@@ -173,7 +184,7 @@ func (tw *TimingWheel) AddTimer(spec string, to *OnTimeOut) int64 {
 	when := schedule.Next(now)
 	intervl := when.Sub(now)
 	fmt.Println(`Next time:`, when)
-	timer := newTimer(when, intervl, to, schedule)
+	timer := newTimer(when, intervl, to, schedule, unqiueName)
 	tw.addChan <- timer
 	return timer.id
 }
@@ -232,6 +243,11 @@ func (tw *TimingWheel) update(timers []*timerType) {
 			}
 		}
 	}
+}
+
+// GetIndexByName ...
+func (tw *TimingWheel) GetIndexByName(name string) int {
+	return tw.timers.getIndexByName(name)
 }
 
 // start函数，当创建一个TimeingWheel时，通过一个goroutine来执行start,在start中for循环和select来监控不同的channel的状态s
