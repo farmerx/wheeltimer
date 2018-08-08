@@ -45,7 +45,7 @@ func (heap timerHeapType) getIndexByID(id int64) int {
 func (heap timerHeapType) getIndexByName(name string) int {
 	for _, t := range heap {
 		if t.unqiueName == name {
-			return t.index
+			return int(t.id)
 		}
 	}
 	return -1
