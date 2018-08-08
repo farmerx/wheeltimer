@@ -246,7 +246,7 @@ func (tw *TimingWheel) update(timers []*timerType) {
 }
 
 // GetIndexByName ...
-func (tw *TimingWheel) GetIndexByName(name string) int {
+func (tw *TimingWheel) GetJobIDByName(name string) int {
 	return tw.timers.getIndexByName(name)
 }
 
